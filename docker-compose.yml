@@ -1,7 +1,18 @@
 version: '3.8'
 
 services:
-
+ # --- ADD THIS GO ENGINE BLOCK ---
+  go_engine:
+    build:
+      context: ./go-engine
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kafka
+      - redis
+      - postgres
+    restart: on-failure
   service_monitor:
     build:
       context: ./dashboard
@@ -67,9 +78,19 @@ services:
       timeout: 3s
       retries: 5
 
-  # ==========================================
-  # ADDED: Professional Observability Stack
-  # ==========================================
+  # --- MATCHES RESUME: PostgreSQL Database ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: notification_db
+    restart: unless-stopped
+
+  # --- OBSERVABILITY INFRASTRUCTURE ---
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: prometheus
